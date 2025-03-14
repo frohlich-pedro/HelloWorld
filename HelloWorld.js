@@ -17,12 +17,14 @@ const server = http.createServer((req, res) => {
             res.end('Internal Server Error');
             return;
         }
+
         serve(req, res, (err) => {
             if (err) {
                 res.writeHead(404, { 'Content-Type': 'text/plain' });
                 res.end('Not Found');
                 return;
             }
+            
             finalhandler(req, res)(err);
         });
     });
