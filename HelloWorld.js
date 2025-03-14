@@ -34,7 +34,7 @@ class Server {
                     this.sendError(res, 404, 'Not Found');
                     return;
                 }
-                
+
                 finalhandler(req, res)(err);
             });
         });
