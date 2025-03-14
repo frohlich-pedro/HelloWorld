@@ -11,23 +11,23 @@ const serve = serveStatic(path.join(__dirname, 'www'));
 const logger = morgan('combined');
 
 const server = http.createServer((req, res) => {
-  logger(req, res, (err) => {
-    if (err) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end('Internal Server Error');
-      return;
-    }
-    serve(req, res, (err) => {
-      if (err) {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        res.end('Not Found');
-        return;
-      }
-      finalhandler(req, res)(err);
+    logger(req, res, (err) => {
+        if (err) {
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Internal Server Error');
+            return;
+        }
+        serve(req, res, (err) => {
+            if (err) {
+                res.writeHead(404, { 'Content-Type': 'text/plain' });
+                res.end('Not Found');
+                return;
+            }
+            finalhandler(req, res)(err);
+        });
     });
-  });
 });
 
 server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+    console.log(`Server running at http://${hostname}:${port}/`);
 });
