@@ -4,7 +4,7 @@ const serveStatic  = require('serve-static');
 const finalhandler = require('finalhandler');
 const path         = require('path');
 const morgan       = require('morgan');
-const mysql        = require('mysql');
+const mysql        = require('mysql2');
 
 class Server {
     constructor() {
@@ -26,8 +26,8 @@ class Server {
 
     setupDatabase() {
         const connection = mysql.createConnection({
-            host: process.env.DB_HOST,
-            user: process.env.DB_USER,
+            host:     process.env.DB_HOST,
+            user:     process.env.DB_USER,
             password: process.env.DB_PASS,
             database: process.env.DB_NAME
         });
@@ -37,8 +37,6 @@ class Server {
                 console.error('Could not connect to MySQL:', err.message);
                 process.exit(1);
             }
-
-            console.log('MySQL connected');
         });
 
         return connection;
@@ -49,27 +47,6 @@ class Server {
             if (err) {
                 this.sendError(res, 500, 'Internal server error');
                 return;
-            }
-
-            if (req.url === '/dados') {
-                const query = `SELECT * FROM ${process.env.DB_TABLE}`;
-                this.db.query(query, (err, results) => {
-                    if (err) {
-                        this.sendError(res, 500, 'Could not consult database');
-                        return;
-                    }
-
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify(results));
-                });
-            } else {
-                this.serve(req, res, (err) => {
-                    if (err) {
-                        this.sendError(res, 404, 'Not found');
-                        return;
-                    }
-                    finalhandler(req, res)(err);
-                });
             }
         });
     }
@@ -86,7 +63,6 @@ class Server {
 
         process.on('SIGINT', () => {
             this.db.end(() => {
-                console.log('Database connection ended');
                 process.exit(0);
             });
         });
