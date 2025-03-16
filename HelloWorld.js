@@ -48,8 +48,18 @@ class Server {
                 this.sendError(res, 500, 'Internal server error');
                 return;
             }
+    
+            this.serve(req, res, (err) => {
+                if (err) {
+                    this.sendError(res, 404, 'Not found');
+                    return;
+                }
+
+                finalhandler(req, res)(err);
+            });
         });
     }
+    
 
     sendError(res, statusCode, message) {
         res.writeHead(statusCode, { 'Content-Type': 'text/plain' });
