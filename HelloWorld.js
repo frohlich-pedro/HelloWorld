@@ -17,7 +17,7 @@ class Server {
 
     validateEnvironmentVariables() {
         if (!this.hostname || !this.port) {
-            console.error('HOSTNAME e PORT devem ser definidos no arquivo .env');
+            console.error("HOSTNAME and PORT must be defined in .env");
             process.exit(1);
         }
     }
@@ -25,13 +25,13 @@ class Server {
     requestHandler(req, res) {
         this.logger(req, res, (err) => {
             if (err) {
-                this.sendError(res, 500, 'Internal Server Error');
+                this.sendError(res, 500, "Internal server error");
                 return;
             }
 
             this.serve(req, res, (err) => {
                 if (err) {
-                    this.sendError(res, 404, 'Not Found');
+                    this.sendError(res, 404, "Not found");
                     return;
                 }
 
@@ -41,7 +41,7 @@ class Server {
     }
 
     sendError(res, statusCode, message) {
-        res.writeHead(statusCode, { 'Content-Type': 'text/plain' });
+        res.writeHead(statusCode, { "Content-Type": "text/plain" });
         res.end(message);
     }
 
