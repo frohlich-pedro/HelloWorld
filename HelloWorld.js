@@ -4,46 +4,54 @@ const serveStatic  = require('serve-static');
 const finalhandler = require('finalhandler');
 const path         = require('path');
 const morgan       = require('morgan');
-const mysql        = require('mysql2');
+const mysql        = require('mysql2/promise');
+const helmet       = require('helmet');
+const { cleanEnv, str, port } = require('envalid');
 
 class Server {
     constructor() {
-        this.hostname = process.env.HOSTNAME;
-        this.port     = process.env.PORT;
-        this.dbHost   = process.env.DB_HOST;
-        this.dbUser   = process.env.DB_USER;
-        this.dbPass   = process.env.DB_PASS;
-        this.dbName   = process.env.DB_NAME;
+        this.env = this.validateEnvironmentVariables();
+        this.hostname = this.env.HOSTNAME;
+        this.port     = this.env.PORT;
+        this.dbHost   = this.env.DB_HOST;
+        this.dbUser   = this.env.DB_USER;
+        this.dbPass   = this.env.DB_PASS;
+        this.dbName   = this.env.DB_NAME;
         this.serve    = serveStatic(path.join(__dirname, 'www'));
         this.logger   = morgan('combined');
         this.server   = http.createServer(this.requestHandler.bind(this));
         this.db       = this.setupDatabase();
-        this.validateEnvironmentVariables();
     }
 
     validateEnvironmentVariables() {
-        if (!this.hostname || !this.port || !this.dbHost || !this.dbUser || !this.dbPass || !this.dbName) {
-            console.error("something isn't right, verify .env");
-            process.exit(1);
-        }
+        return cleanEnv(process.env, {
+            HOSTNAME: str(),
+            PORT:     port(),
+            DB_HOST:  str(),
+            DB_USER:  str(),
+            DB_PASS:  str(),
+            DB_NAME:  str()
+        });
     }
 
-    setupDatabase() {
-        const connection = mysql.createConnection({
+    async setupDatabase() {
+        const pool = mysql.createPool({
             host:     this.dbHost,
             user:     this.dbUser,
             password: this.dbPass,
             database: this.dbName
         });
 
-        connection.connect((err) => {
-            if (err) {
-                console.error('Could not connect to MySQL:', err.message);
-                process.exit(1);
-            }
-        });
+        try {
+            const connection = await pool.getConnection();
+            console.log('Connected to MySQL!');
+            connection.release();
+        } catch (err) {
+            console.error('Could not connect to MySQL:', err.message);
+            process.exit(1);
+        }
 
-        return connection;
+        return pool;
     }
 
     requestHandler(req, res) {
@@ -53,33 +61,59 @@ class Server {
                 return;
             }
 
-            this.serve(req, res, (err) => {
+            helmet()(req, res, (err) => {
                 if (err) {
-                    this.sendError(res, 404, 'Not found');
+                    this.sendError(res, 500, 'Error applying security headers');
                     return;
                 }
 
-                finalhandler(req, res)(err);
+                this.serve(req, res, (err) => {
+                    if (err) {
+                        this.sendError(res, 404, 'Not found');
+                        return;
+                    }
+
+                    finalhandler(req, res)(err);
+                });
             });
         });
     }
 
     sendError(res, statusCode, message) {
-        res.writeHead(statusCode, { 'Content-Type': 'text/plain' });
-        res.end(message);
+        const errorPage = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Error ${statusCode}</title>
+            </head>
+            <body>
+                <h1>Error ${statusCode}: ${message}</h1>
+            </body>
+            </html>
+        `;
+        res.writeHead(statusCode, { 'Content-Type': 'text/html' });
+        res.end(errorPage);
     }
 
     start() {
         this.server.listen(this.port, this.hostname, () => {
             console.log(`Server running at http://${this.hostname}:${this.port}/`);
         });
-
-        process.on('SIGINT', () => {
-            this.db.end(() => {
-                process.exit(0);
-            });
+    
+        process.on('SIGINT', async () => {
+            console.log('Shutting down gracefully...');
+            if (this.db && typeof this.db.end === 'function') {
+                try {
+                    await this.db.end();
+                    console.log('Database connection closed.');
+                } catch (err) {
+                    console.error('Error while closing database connection:', err.message);
+                }
+            }
+            
+            process.exit(0);
         });
-    }
+    }    
 }
 
 const serverInstance = new Server();
