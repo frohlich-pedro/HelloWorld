@@ -19,6 +19,7 @@ class Server {
         this.server   = http.createServer(this.requestHandler.bind(this));
         this.db       = this.setupDatabase();
         this.validateEnvironmentVariables();
+        serverInstance.start();
     }
 
     validateEnvironmentVariables() {
@@ -84,4 +85,3 @@ class Server {
 }
 
 const serverInstance = new Server();
-serverInstance.start();
