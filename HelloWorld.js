@@ -10,6 +10,10 @@ class Server {
     constructor() {
         this.hostname = process.env.HOSTNAME;
         this.port     = process.env.PORT;
+        this.dbHost   = process.env.DB_HOST;
+        this.dbUser   = process.env.DB_USER;
+        this.dbPass   = process.env.DB_PASS;
+        this.dbName   = process.env.DB_NAME;
         this.serve    = serveStatic(path.join(__dirname, 'www'));
         this.logger   = morgan('combined');
         this.server   = http.createServer(this.requestHandler.bind(this));
@@ -18,7 +22,7 @@ class Server {
     }
 
     validateEnvironmentVariables() {
-        if (!this.hostname || !this.port || !process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PASS || !process.env.DB_NAME) {
+        if (!this.hostname || !this.port || !this.dbHost || !this.dbUser || !this.dbPass || !this.dbName) {
             console.error("something isn't right, verify .env");
             process.exit(1);
         }
@@ -26,10 +30,10 @@ class Server {
 
     setupDatabase() {
         const connection = mysql.createConnection({
-            host:     process.env.DB_HOST,
-            user:     process.env.DB_USER,
-            password: process.env.DB_PASS,
-            database: process.env.DB_NAME
+            host:     this.dbHost,
+            user:     this.dbUser,
+            password: this.dbPass,
+            database: this.dbName
         });
 
         connection.connect((err) => {
