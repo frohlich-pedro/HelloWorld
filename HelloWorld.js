@@ -30,8 +30,8 @@ class Server {
 
     setupDatabase() {
         const connection = mysql.createConnection({
-            host: this.dbHost,
-            user: this.dbUser,
+            host:     this.dbHost,
+            user:     this.dbUser,
             password: this.dbPass,
             database: this.dbName
         });
