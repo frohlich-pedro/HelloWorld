@@ -91,7 +91,7 @@ class Server {
             </body>
             </html>
         `;
-        
+
         res.writeHead(statusCode, { 'Content-Type': 'text/html' });
         res.end(errorPage);
     }
