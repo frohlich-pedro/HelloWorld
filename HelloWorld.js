@@ -30,8 +30,8 @@ class Server {
 
     setupDatabase() {
         const connection = mysql.createConnection({
-            host:     this.dbHost,
-            user:     this.dbUser,
+            host: this.dbHost,
+            user: this.dbUser,
             password: this.dbPass,
             database: this.dbName
         });
@@ -52,7 +52,7 @@ class Server {
                 this.sendError(res, 500, 'Internal server error');
                 return;
             }
-    
+
             this.serve(req, res, (err) => {
                 if (err) {
                     this.sendError(res, 404, 'Not found');
@@ -63,7 +63,6 @@ class Server {
             });
         });
     }
-    
 
     sendError(res, statusCode, message) {
         res.writeHead(statusCode, { 'Content-Type': 'text/plain' });
