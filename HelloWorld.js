@@ -10,7 +10,7 @@ const { cleanEnv, str, port } = require('envalid');
 
 class Server {
     constructor() {
-        this.env = this.validateEnvironmentVariables();
+        this.env      = this.validateEnvironmentVariables();
         this.hostname = this.env.HOSTNAME;
         this.port     = this.env.PORT;
         this.dbHost   = this.env.DB_HOST;
@@ -119,4 +119,3 @@ class Server {
 
 const serverInstance = new Server();
 serverInstance.start();
-
