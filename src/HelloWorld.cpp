@@ -13,15 +13,15 @@ public:
   ~HelloWorld() = default;
 
 private:
-  char *video = (char *)0xb8000;
+  char *video = (char*)0xb8000;
 
   int kernelInit() {
-    unsigned int i = 0;
-    unsigned int j = 0;
+    unsigned short i = 0;
+    unsigned short j = 0;
 
     while (i < (80 * 25 * 2)) {
       *(video + i) = ' ';
-      *(video + (i + 1)) = 0x07;
+      *(video + (i + 1)) = 0x0f;
       i += 2;
     }
 
@@ -35,7 +35,7 @@ private:
         string += 1;
       } else {
         *(video + i) = *string;
-        *(video + (i + 1)) = 0x07;
+        *(video + (i + 1)) = 0x0f;
         string += 1;
         i += 2;
       }
