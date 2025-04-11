@@ -2,11 +2,9 @@ class HelloWorld {
 public:
   explicit HelloWorld() {
     try {
-      if (kernelInit() != 0) {
-        throw -1;
-      }
-    } catch (const int& e) {
-      /* Implementar lógica de tratamento de erro */
+      kprintf("Hello, World!");
+    } catch (const char* e) {
+      kprintf(e);
     }
   }
 
@@ -15,7 +13,7 @@ public:
 private:
   char *video = (char*)0xb8000;
 
-  int kernelInit() {
+  int kprintf(const char* string) {
     unsigned short i = 0;
     unsigned short j = 0;
 
@@ -25,9 +23,7 @@ private:
       i += 2;
     }
 
-    const char* string = "Oiee :3";
     i = (j * 80 * 2);
-
     while (*string != 0) {
       if (*string == '\n') {
         j += 1;
